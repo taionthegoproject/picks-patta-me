@@ -510,13 +510,13 @@ textarea.input { resize:vertical; min-height:80px; }
 <body>
 
 <!-- ═══ LOADING ═══ -->
-<div id="s-loading" class="screen active">
+<div id="s-loading" class="screen">
   <div class="spinner"></div>
   <p style="font-size:13px;color:var(--t3)">กำลังโหลด...</p>
 </div>
 
 <!-- ═══ LANDING ═══ -->
-<div id="s-landing" class="screen">
+<div id="s-landing" class="screen active">
   <nav class="land-nav">
     <div class="land-logo">Picks<span class="land-logo-dot"></span>patta</div>
     <div style="display:flex;gap:8px">
@@ -807,6 +807,8 @@ textarea.input { resize:vertical; min-height:80px; }
 // ════════════════════════════════════════
 // FIREBASE CONFIG — ใส่ config ของคุณที่นี่
 // ════════════════════════════════════════
+window.onload = function(){
+
 var firebaseConfig = {
   apiKey: "AIzaSyB73qUzsb9r1B9q4r8_qGDnE9QO4RJVD5Y",
   authDomain: "patta-picks-e1b29.firebaseapp.com",
@@ -832,40 +834,28 @@ var usernameCheckTimer = null;
 // INIT
 // ════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function(){
-  // check if viewing a profile
+  // แสดง landing ทันที ไม่รอ Firebase
+  showScreen('s-landing');
+
+  // check if viewing a profile via URL param
+  var params = new URLSearchParams(window.location.search);
+  var u = params.get('u');
+  if(u){ loadPublicProfile(u); return; }
+
+  // check path
   var path = window.location.pathname;
   var match = path.match(/^\/([a-z0-9_]{3,30})$/i);
   if(match && match[1] !== 'index'){
-    loadPublicProfile(match[1]);
-    return;
+    loadPublicProfile(match[1]); return;
   }
 
-  // check URL param
-  var params = new URLSearchParams(window.location.search);
-  var u = params.get('u');
-  if(u){
-    loadPublicProfile(u);
-    return;
-  }
-
-  // auth state — with timeout fallback
-  var authResolved = false;
-  setTimeout(function(){
-    if(!authResolved){
-      authResolved = true;
-      showScreen('s-landing');
-    }
-  }, 5000);
-
+  // ตรวจ auth แบบ background — ถ้า login อยู่แล้วจะ redirect ไป dashboard
   auth.onAuthStateChanged(function(user){
-    if(authResolved && !user) return;
-    authResolved = true;
     if(user){
       currentUser = user;
       checkUserProfile(user.uid);
-    } else {
-      showScreen('s-landing');
     }
+    // ไม่ login → อยู่ที่ landing ปกติ
   });
 });
 
@@ -1265,6 +1255,8 @@ function toast(msg){
 // close modal on bg click
 document.getElementById('auth-modal').addEventListener('click', function(e){ if(e.target===this) closeAuth(); });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeAuth(); closeEditProfile(); } });
+
+}; // end window.onload
 </script>
 </body>
 </html>
