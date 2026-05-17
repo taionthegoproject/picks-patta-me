@@ -848,8 +848,18 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
 
-  // auth state
+  // auth state — with timeout fallback
+  var authResolved = false;
+  setTimeout(function(){
+    if(!authResolved){
+      authResolved = true;
+      showScreen('s-landing');
+    }
+  }, 5000);
+
   auth.onAuthStateChanged(function(user){
+    if(authResolved && !user) return;
+    authResolved = true;
     if(user){
       currentUser = user;
       checkUserProfile(user.uid);
